@@ -2,33 +2,34 @@ import sys
 import json
 
 class Player():
-    def __init__(self,name, money, properties, position):
+    def __init__(self,name):
         self.name = name
-        self.money = money
-        self.properties = properties
-        self.position = position
+        self.money = 16
+        self.properties = []
+        self.position = "Go"
 
 class Property():
-    def __init__(self, propertyName, color, rent, owner):
+    def __init__(self, propertyName, positionIndex, color, rent, owner):
         self.propertyName = propertyName
+        self.position = positionIndex
         self.color = color
         self.rent = rent
         self.owner = owner
     def __str__(self) -> str:
-        return ("Cell Info: \n"
-        + self.propertyName 
-        + "\nColour: " + self.color 
+        return (self.propertyName 
+        + "\nColour: " + self.color
         + "\nRent: " + str(self.rent)
-        + "\nOwner " + str(self.owner)
+        + "\nOwner: " + str(self.owner)
         +"\n-----------------------")
+    def setOwner(self, newOwner):
+        self.owner = owner = newOwner
 
 class Go():
-    def __init__(self):
-        pass
+    def __init__(self,positionIndex):
+        self.position = positionIndex
     
-    def __str__(self) -> str:
+    def __str__(self):
         return "\nGo\n-----------------------"
-
 
 class Board():
     def __init__(self, filename):
@@ -39,29 +40,27 @@ class Board():
 
         self.cells = []
         # Validate board file format & missing info
-        for cell in contents:
+        for i, cell in enumerate(contents):
             cellName = cell["name"]
             cellType = cell["type"]
 
             if cellType == "go":
-                goCell = Go()
+                goCell = Go(i)
                 self.cells.append(goCell)
             elif cellType == "property":
                 propertyName = cellName
                 colour = cell["colour"]
                 rent = cell["price"]
                 owner = None
-                propertyCell = Property(propertyName,colour,rent,owner)
+                propertyCell = Property(propertyName,i,colour,rent,owner)
                 self.cells.append(propertyCell)
             else:
                 raise Exception("Board file contains wrong types")
     
     def print(self):
         for cell in self.cells:
+                print(cell)
             
-                print(cell.__str__())
-            
-
 class Roller():
     def __init__(self,filename):
         
@@ -80,23 +79,45 @@ class Roller():
         for i, roller in enumerate(self.rollers):
             print(i, roller)
 
+
+def parseArgs():
+
+    # check args format
+    if len(sys.argv) != 3:
+        sys.exit("Wrong arguments.\nUsage: python3 main.py board.json rolls.json")
+    else:
+        board_file = sys.argv[1]
+        rolls_file = sys.argv[2]
+        
+        try:
+            board = Board(board_file)
+            roller = Roller(rolls_file)
+
+            print("Board:")
+            board.print()
+
+            # print("Rollers:")
+            # roller.print()
+        except:
+            sys.exit("File Not Found.\nUsage: python3 main.py board.json rolls.json")
+    return board,roller
+
+def checkWinner():
+    return True
+
 '''
 Main Entry point
 ''' 
-# check args format
-if len(sys.argv) != 3:
-    sys.exit("Wrong arguments.\nUsage: python3 main.py board.json rolls.json")
 
-board_file = sys.argv[1]
-rolls_file = sys.argv[2]
+board,roller = parseArgs()
 
-board = Board(board_file)
-roller = Roller(rolls_file)
+Peter = Player("Peter")
+Billy = Player("Billy")
+Charlotte = Player("Charlotte")
+Sweedal = Player("Sweedal")
 
-print("Board:")
-board.print()
 
-# print("Rollers:")
-# roller.print()
-# print("Solving...")
+
+
+
 
