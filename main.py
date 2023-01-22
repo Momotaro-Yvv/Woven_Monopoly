@@ -8,10 +8,11 @@ class Player():
         self.properties = []
         self.position = 0
     def __str__(self):
+        propertiesList = [str(p) for p in self.properties]
         return (self.name 
-            + "\nMoney: " + str(self.money)
-            + "\nOwns properties: " + str(self.properties)
-            + "\nCurrently at: " + str(self.position))
+            , "\nMoney: ", self.money
+            , "\nOwns properties: ", propertiesList
+            , "\nCurrently at: ", self.position)
     def move(self, steps):
         self.position += steps
     def purchaseProperty(self, propertyName):
@@ -22,16 +23,16 @@ class Player():
         return self.money <= 0
     
 class Property():
-    def __init__(self, propertyName, positionIndex, color, price, owner):
+    def __init__(self, propertyName, positionIndex, colour, price, owner):
         self.propertyName = propertyName
         self.position = positionIndex
-        self.color = color
+        self.colour = colour
         self.price = price
         self.owner = owner
     def __str__(self) -> str:
         return (self.propertyName 
-            + "\nColour: " + self.color
-            + "\Price: " + str(self.price)
+            + "\nColour: " + self.colour
+            + "\nPrice: " + str(self.price)
             + "\nOwner: " + str(self.owner)
             +"\n-----------------------")
     def setOwner(self, newOwner):
@@ -53,6 +54,8 @@ class Board():
             contents = json.load(f)
 
         self.cells = []
+        self.properties_Set = {}
+
         # Validate board file format & missing info
         for i, cell in enumerate(contents):
             cellName = cell["name"]
@@ -66,8 +69,14 @@ class Board():
                 colour = cell["colour"]
                 price = cell["price"]
                 owner = None
-                propertyCell = Property(propertyName,i,colour,price,owner)
-                self.cells.append(propertyCell)
+                property = Property(propertyName,i,colour,price,owner)
+                self.cells.append(property)
+
+                if property.colour not in self.properties_Set:
+                    self.properties_Set[property.colour] = property
+                else:
+                    self.properties_Set[property.colour] = [self.properties_Set[property.colour],property]
+                
             else:
                 raise Exception("Board file contains wrong types")
     
@@ -130,15 +139,17 @@ def parseArgs():
     return board,roller
 
 def checkWinner():
-    winner = None
+    winners = None
     currentPlayersMoney = []
     for player in players:  
         currentPlayersMoney.append(player.money)
     for player in players:
         if player.ifBankrupt():
-            winner = [players[index] for index, money in enumerate(currentPlayersMoney) if money == max(currentPlayersMoney)]
-    print("checking Winner:",currentPlayersMoney, winner)
-    return winner
+            winners = [players[index] for index, money in enumerate(currentPlayersMoney) if money == max(currentPlayersMoney)]
+    
+    
+    print("checking Winner:",currentPlayersMoney)
+    return winners
 
 '''
 Main Entry point
@@ -154,6 +165,8 @@ if __name__ == "__main__":
     playerIndex = 0
     totalNumOfCells = len(board.cells)
 
+    print(board.properties_Set)
+
     while not checkWinner():
         nextPlayer = players[playerIndex%4]
         playerIndex += 1
@@ -163,32 +176,50 @@ if __name__ == "__main__":
         timesPassGo = (nextPlayer.position+ nextRoll) // totalNumOfCells
         nextPlayer.position = (nextPlayer.position+ nextRoll) % totalNumOfCells
         nextPlayer.money += timesPassGo
-        
+
         print("-------------------------\n" + nextPlayer.name)
         print("Rolled: " + str(nextRoll))
+        if timesPassGo > 0:
+             print(nextPlayer.name, "Passing Go, gain $1")
 
         if isinstance(board.cells[nextPlayer.position],Go):
             print("Now at Go, gain $1")
             nextPlayer.money += 1
         else:
-            print("Now at: " + board.cells[nextPlayer.position].propertyName)
             # step on a property
+            print("Now at: " + board.cells[nextPlayer.position].propertyName)
             thisProperty = board.cells[nextPlayer.position]
+            
             if thisProperty.owner == None:
                 nextPlayer.properties.append(thisProperty)
                 nextPlayer.money -= thisProperty.price
                 thisProperty.setOwner(nextPlayer)
+                print(nextPlayer.name, "Now successfully purchase the property",thisProperty.propertyName)
 
             else:
                 # this property has owned by someone
                 if thisProperty.owner.name == nextPlayer.name:
+                    print("This property has already owned by", nextPlayer.name)
                     continue
                 else:
-                    thisProperty.owner.money += thisProperty.price
-                    nextPlayer.money -= thisProperty.price
+                    print(nextPlayer.name, "paying", thisProperty.owner.name, thisProperty.price)
+                    
+                    #check if the whole set owned by same player, if yes double the  price
+                    rent = thisProperty.price
+                    colourSet = thisProperty.colour
+                    propertiesSet = board.properties_Set[colourSet]
+                    
+                    owners = []
+                    for p in propertiesSet:
+                        if p.owner is None:
+                            continue
+                        else:
+                            owners.append(p.owner)
+                    if all(element == owners[0] for element in owners):
+                        rent = rent * 2
+                    thisProperty.owner.money += rent
+                    nextPlayer.money -= rent
 
 
-    for player in players:
-        print(player)
-
-    print(checkWinner)
+    winners = checkWinner()
+    print([winner.name for winner in winners])
