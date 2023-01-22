@@ -23,18 +23,14 @@
 ### How to run
 * Make sure you have Python 3 installed.
 * Clone the repo on your device using the command below:
+
 ```git clone https://github.com/Momotaro-Yvv/Woven_Monopoly.git```
-* To run the version with simple result output, run 
+* To run the version with simple result, run
+
 ```python3 main.py board.json rolls.json```
-* To run the version with much details and result output through the process, run 
+* To run the version with much details and output throughout the process, run 
+
 ```python3 main_detailed.py board.json rolls.json```
-
-### What we are looking for:
-* We are a Ruby house, however feel free to pick the language you feel you are strongest in.
-* Code that is well thought out and tested
-* Clean and readable code
-* Extensibility should be considered
-
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details
