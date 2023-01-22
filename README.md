@@ -33,7 +33,7 @@
 ```python3 main_detailed.py board.json rolls.json```
 
 ## License
-This project is licensed under the MIT License - see the LICENSE.md file for details
+This project is licensed under the [MIT](https://choosealicense.com/licenses/mit/) License
 
 ## Contact
 If you have any questions or feedback, feel free to contact me at yvonne.tao.melb2022@gmail.com.

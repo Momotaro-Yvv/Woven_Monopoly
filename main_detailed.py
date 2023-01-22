@@ -118,6 +118,7 @@ class Roller():
             self.rollers = self.rollers[1:]
             return nextRoll
 
+#TODO: refine this function, make it accept user args in random order, e.g. -board board.file -roller roller.file
 def parseArgs():
 
     # check args format
@@ -130,13 +131,16 @@ def parseArgs():
         
         try:
             board = Board(board_file)
+            # print("Board:")
+            # board.print()
 
         except:
             sys.exit("Board file Not Found. Please check again. \nUsage: python3 main.py board.json rolls.json")
         
         try:
             roller = Roller(rolls_file)
-
+            # print("Rollers:")
+            # print(roller)
         except:
             sys.exit("Roller file Not Found. Please check again. \nUsage: python3 main.py board.json rolls.json")
        
@@ -170,7 +174,6 @@ def welcome_page():
     print("      -The board wraps around (i.e. you get to the last space, the next space is the first space)")
     print("----------------------------------------------------------")
     input("Press enter to start the game")
-
 def end_page(board,players):
     print("The game has ended!")
     print("----------------------------------------------------------")
@@ -184,6 +187,7 @@ def end_page(board,players):
 if __name__ == "__main__":
     
     board,roller = parseArgs()
+    welcome_page()
 
     peter = Player("Peter")
     billy = Player("Billy")
@@ -202,22 +206,30 @@ if __name__ == "__main__":
 
         timesPassGo = (currentPlayer.position + nextRoll) // totalNumOfCells
         currentPlayer.move(nextRoll, totalNumOfCells)
+
+        print("-------------------------\n" + currentPlayer.name)
+        print("Rolled: " + str(nextRoll))
         
         # check whether this player pass GO
         if timesPassGo > 0:
+            print(currentPlayer.name, "Passing Go, gain $1")
             currentPlayer.money += timesPassGo
         
-        if not isinstance(board.cells[currentPlayer.position],Go):
-        
+        if isinstance(board.cells[currentPlayer.position],Go):
+            print("Now at: Go")
+        else:
             # step on a property
             thisProperty = board.cells[currentPlayer.position]
+            print("Now at: " + thisProperty.name)
             
             if thisProperty.owner == None and currentPlayer.money >= thisProperty.price:
                 currentPlayer.purchaseProperty(thisProperty)
-             
+                print(currentPlayer.name, "Now successfully purchase the property",thisProperty.name)
+
             else:
                 # this property has owned by the player themselves
                 if thisProperty.owner.name == currentPlayer.name:
+                    print("This property is already owned by", currentPlayer.name)
                     continue
                 else:
                     #this property is own by someone else, check if the whole set owned by same player, if yes double the  price
@@ -232,8 +244,10 @@ if __name__ == "__main__":
                         else:
                             owners.append(p.owner)
                     if len(owners) == len(propertiesSet) and all(element == owners[0] for element in owners):
+                        print("The whole set is owned by",owners[0].name)
                         rent = rent * 2
 
                     currentPlayer.payRent(thisProperty.owner,rent)
-                    
+                    print(currentPlayer.name, "paying", thisProperty.owner.name,rent)
+
     end_page(board.cells,players)
