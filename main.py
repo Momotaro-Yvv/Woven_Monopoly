@@ -7,6 +7,11 @@ class Player():
         self.money = 16
         self.properties = []
         self.position = "Go"
+    def __str__(self):
+        return (self.name 
+        + "Money: " + self.money 
+        + "Owns properties: " + self.properties 
+        + "Currently at: " + self.position)
 
 class Property():
     def __init__(self, propertyName, positionIndex, color, rent, owner):
@@ -75,29 +80,35 @@ class Roller():
 
         self.rollers = rollers
 
-    def print(self):
-        for i, roller in enumerate(self.rollers):
-            print(i, roller)
-
+    def __str__(self):
+        return str(self.rollers)
+    def isEmpty(self):
+        return len(self.rollers) == 0
+    def getNextRoll(self):
+        if self.isEmpty():
+            raise Exception("Not enough rollers in the defined file.")
+        else:
+            nextRoll = self.rollers[0]
+            self.rollers = self.rollers[1:]
+            return nextRoll
 
 def parseArgs():
 
     # check args format
     if len(sys.argv) != 3:
-        sys.exit("Wrong arguments.\nUsage: python3 main.py board.json rolls.json")
+        sys.exit("Wrong number of arguments.\nUsage: python3 main.py board.json rolls.json")
     else:
         board_file = sys.argv[1]
         rolls_file = sys.argv[2]
         
         try:
             board = Board(board_file)
-            roller = Roller(rolls_file)
-
             print("Board:")
             board.print()
 
-            # print("Rollers:")
-            # roller.print()
+            roller = Roller(rolls_file)
+            print("Rollers:")
+            print(roller)
         except:
             sys.exit("File Not Found.\nUsage: python3 main.py board.json rolls.json")
     return board,roller
@@ -108,13 +119,13 @@ def checkWinner():
 '''
 Main Entry point
 ''' 
+if __name__ == "__main__":
+    board,roller = parseArgs()
 
-board,roller = parseArgs()
-
-Peter = Player("Peter")
-Billy = Player("Billy")
-Charlotte = Player("Charlotte")
-Sweedal = Player("Sweedal")
+    Peter = Player("Peter")
+    Billy = Player("Billy")
+    Charlotte = Player("Charlotte")
+    Sweedal = Player("Sweedal")
 
 
 
