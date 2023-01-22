@@ -7,34 +7,42 @@ class Player():
         self.money = 16
         self.properties = []
         self.position = 0
+
     def __str__(self):
         propertiesList = [str(p) for p in self.properties]
         return (self.name 
             , "\nMoney: ", self.money
             , "\nOwns properties: ", propertiesList
             , "\nCurrently at: ", self.position)
-    def move(self, steps):
-        self.position += steps
-    def purchaseProperty(self, propertyName):
-         self.properties.append(propertyName)
-    def payRent(self,rent):
+
+    def move(self, steps, totalNumOfCells):
+        self.position = (self.position+ steps) % totalNumOfCells
+
+    def purchaseProperty(self, thisProperty):
+        self.properties.append(thisProperty)
+        self.money -= thisProperty.price
+        thisProperty.setOwner(self)
+
+    def payRent(self,other_player,rent):
         self.money -= rent
+        other_player.money += rent
+
     def ifBankrupt(self):
-        return self.money <= 0
+        return self.money < 0
     
 class Property():
     def __init__(self, propertyName, positionIndex, colour, price, owner):
-        self.propertyName = propertyName
+        self.name = propertyName
         self.position = positionIndex
         self.colour = colour
         self.price = price
         self.owner = owner
     def __str__(self) -> str:
-        return (self.propertyName 
-            + "\nColour: " + self.colour
-            + "\nPrice: " + str(self.price)
-            + "\nOwner: " + str(self.owner)
-            +"\n-----------------------")
+        return (self.name 
+            , "\nColour: ",self.colour
+            , "\nPrice: ", self.price
+            , "\nOwner: ", self.owner
+            , "\n-----------------------")
     def setOwner(self, newOwner):
         self.owner = newOwner
 
@@ -123,88 +131,108 @@ def parseArgs():
         
         try:
             board = Board(board_file)
-            print("Board:")
-            board.print()
+            # print("Board:")
+            # board.print()
 
         except:
             sys.exit("Board file Not Found. Please check again. \nUsage: python3 main.py board.json rolls.json")
         
         try:
             roller = Roller(rolls_file)
-            print("Rollers:")
-            print(roller)
+            # print("Rollers:")
+            # print(roller)
         except:
             sys.exit("Roller file Not Found. Please check again. \nUsage: python3 main.py board.json rolls.json")
        
     return board,roller
 
-def checkWinner():
-    winners = None
-    currentPlayersMoney = []
-    for player in players:  
-        currentPlayersMoney.append(player.money)
+def gameEnd():
+    ifEnd = False
     for player in players:
         if player.ifBankrupt():
-            winners = [players[index] for index, money in enumerate(currentPlayersMoney) if money == max(currentPlayersMoney)]
-    
-    
-    print("checking Winner:",currentPlayersMoney)
-    return winners
+            ifEnd = True
+    return ifEnd
 
-'''
-Main Entry point
-''' 
+def welcome_page():
+    print("\nWelcome to the Woven Monopoly!")
+    print("----------------------------------------------------------")
+    print("In Woven Monopoly, the rules of the game are:")
+    print("There are four players who take turns in the following order:")
+    print("   * Peter")
+    print("   * Billy")
+    print("   * Charlotte")
+    print("   * Sweedal")
+    print("      -The dice rolls are set ahead of time, therefore the game is deterministic")
+    print("      -Each player starts with $16")
+    print("      -Everybody starts on GO")
+    print("      -You get $1 when you pass GO (this excludes your starting move)")
+    print("      -If you land on a property, you must buy it")
+    print("      -If you land on an owned property, you must pay rent to the owner")
+    print("      -If the same owner owns all property of the same colour, the rent is doubled")
+    print("      -Once someone is bankrupt, whoever has the most money remaining is the winner")
+    print("      -There are no chance cards, jail or stations")
+    print("      -The board wraps around (i.e. you get to the last space, the next space is the first space)")
+    print("----------------------------------------------------------")
+    input("Press enter to start the game")
+def end_page(board,players):
+    print("The game has ended!")
+    print("----------------------------------------------------------")
+    winner = max(players, key=lambda player: player.money)
+    print(f"{winner.name} has won the game with ${winner.money}!")
+    print("Check out more details:")
+    for player in players:
+        print(f"{player.name} ended the game with ${player.money} and on space {board[player.position].name}")
+    print("----------------------------------------------------------")
+
 if __name__ == "__main__":
+    
     board,roller = parseArgs()
+    welcome_page()
 
-    peter = Player("Peter")
-    billy = Player("Billy")
-    charlotte = Player("Charlotte")
-    sweedal = Player("Sweedal")
+    peter = Player("Green")
+    billy = Player("Red")
+    charlotte = Player("Yellow")
+    sweedal = Player("Blue")
     players = [peter,billy,charlotte,sweedal]
+
     playerIndex = 0
     totalNumOfCells = len(board.cells)
 
-    print(board.properties_Set)
-
-    while not checkWinner():
-        nextPlayer = players[playerIndex%4]
+    while not gameEnd():
+        currentPlayer = players[playerIndex%4]
         playerIndex += 1
 
         nextRoll = roller.getNextRoll()
 
-        timesPassGo = (nextPlayer.position+ nextRoll) // totalNumOfCells
-        nextPlayer.position = (nextPlayer.position+ nextRoll) % totalNumOfCells
-        nextPlayer.money += timesPassGo
+        timesPassGo = (currentPlayer.position + nextRoll) // totalNumOfCells
+        currentPlayer.move(nextRoll, totalNumOfCells)
 
-        print("-------------------------\n" + nextPlayer.name)
+        print("-------------------------\n" + currentPlayer.name)
         print("Rolled: " + str(nextRoll))
+        
+        # check whether this player pass GO
         if timesPassGo > 0:
-             print(nextPlayer.name, "Passing Go, gain $1")
-
-        if isinstance(board.cells[nextPlayer.position],Go):
-            print("Now at Go, gain $1")
-            nextPlayer.money += 1
+            print(currentPlayer.name, "Passing Go, gain $1")
+            currentPlayer.money += timesPassGo
+        
+        if isinstance(board.cells[currentPlayer.position],Go):
+            print("Now at: Go")
         else:
             # step on a property
-            print("Now at: " + board.cells[nextPlayer.position].propertyName)
-            thisProperty = board.cells[nextPlayer.position]
+            thisProperty = board.cells[currentPlayer.position]
+            print("Now at: " + thisProperty.name)
             
-            if thisProperty.owner == None:
-                nextPlayer.properties.append(thisProperty)
-                nextPlayer.money -= thisProperty.price
-                thisProperty.setOwner(nextPlayer)
-                print(nextPlayer.name, "Now successfully purchase the property",thisProperty.propertyName)
+            if thisProperty.owner == None and currentPlayer.money >= thisProperty.price:
+                currentPlayer.purchaseProperty(thisProperty)
+                print(currentPlayer.name, "Now successfully purchase the property",thisProperty.name)
 
             else:
-                # this property has owned by someone
-                if thisProperty.owner.name == nextPlayer.name:
-                    print("This property has already owned by", nextPlayer.name)
+                # this property has owned by the player themselves
+                if thisProperty.owner.name == currentPlayer.name:
+                    print("This property is already owned by", currentPlayer.name)
                     continue
                 else:
-                    print(nextPlayer.name, "paying", thisProperty.owner.name, thisProperty.price)
-                    
-                    #check if the whole set owned by same player, if yes double the  price
+                    #this property is own by someone else, check if the whole set owned by same player, if yes double the  price
                     rent = thisProperty.price
                     colourSet = thisProperty.colour
                     propertiesSet = board.properties_Set[colourSet]
@@ -212,14 +240,14 @@ if __name__ == "__main__":
                     owners = []
                     for p in propertiesSet:
                         if p.owner is None:
-                            continue
+                            break
                         else:
                             owners.append(p.owner)
-                    if all(element == owners[0] for element in owners):
+                    if len(owners) == len(propertiesSet) and all(element == owners[0] for element in owners):
+                        print("The whole set is owned by",owners[0].name)
                         rent = rent * 2
-                    thisProperty.owner.money += rent
-                    nextPlayer.money -= rent
 
+                    currentPlayer.payRent(thisProperty.owner,rent)
+                    print(currentPlayer.name, "paying", thisProperty.owner.name, thisProperty.price)
 
-    winners = checkWinner()
-    print([winner.name for winner in winners])
+    end_page(board.cells,players)

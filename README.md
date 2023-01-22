@@ -1,11 +1,7 @@
-## Woven coding test
-
-Your task is to write an application to play the game of Woven Monopoly.
-
-In Woven Monopoly, when the dice rolls are set ahead of time, the game is deterministic.
+# Command Line Woven Monopoly Game
 
 ### Game rules
-* There are four players who take turns in the following order:
+* In Woven Monopoly, when the dice rolls are set ahead of time, the game is deterministic.There are four players who take turns in the following order:
   * Peter
   * Billy
   * Charlotte
@@ -20,25 +16,28 @@ In Woven Monopoly, when the dice rolls are set ahead of time, the game is determ
 * There are no chance cards, jail or stations
 * The board wraps around (i.e. you get to the last space, the next space is the first space)
 
+### Additional assumptions made (on top of the above game rules)
+1. Rent is assumed to be the same as property price
+2. A player is bankrupt when the money is less than 0 (i.e.if one's money is equal to 0, this player is still be in the game)
 
-### Your task
-* Load in the board from board.json
-* Implement game logic as per the rules
-* Load in the given dice rolls files and simulate the game
-  * Who would win each game?
-  * How much money does everybody end up with?
-  * What spaces does everybody finish on?
-
-
-The specifics and implementation of this code is completely up to you!
+### How to run
+* Make sure you have Python 3 installed.
+* Clone the repo on your device using the command below:
+```git clone https://github.com/Momotaro-Yvv/Woven_Monopoly.git```
+* To run the version with simple result output, run 
+```python3 main.py board.json rolls.json```
+* To run the version with much details and result output through the process, run 
+```python3 main_detailed.py board.json rolls.json```
 
 ### What we are looking for:
 * We are a Ruby house, however feel free to pick the language you feel you are strongest in.
 * Code that is well thought out and tested
 * Clean and readable code
 * Extensibility should be considered
-* A git commit-history would be preferred, with small changes committed often so we can see your approach
 
-Please include a readme with any additional information you would like to include, including instructions on how to test and execute your code.  You may wish to use it to explain any design decisions.
 
-Despite this being a small command line app, please approach this as you would a production problem using whatever approach to coding and testing you feel appropriate.
+## License
+This project is licensed under the MIT License - see the LICENSE.md file for details
+
+## Contact
+If you have any questions or feedback, feel free to contact me at yvonne.tao.melb2022@gmail.com.
